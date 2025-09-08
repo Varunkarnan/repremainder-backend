@@ -1,0 +1,56 @@
+{% extends "remainderapp/base.html" %}
+
+{% block content %}
+<div class="container py-5" style="background: linear-gradient(135deg, #eaf2f8, #f5f7fa); min-height: 100vh;">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm border-0 rounded-5 p-5" style="background-color: #ffffff;">
+                <h3 class="mb-4 text-center fw-bold" style="color: #4b4b4b;">Register Form</h3>
+                <!-- Success / Error Messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} mt-3">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                        <div class="mb-3">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.errors %}
+                                {% for error in field.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-lg fw-bold" 
+                                style="background: #a3bfa8; color: #fff; border-radius: 0.5rem; transition: 0.3s;">
+                            Register User
+                        </button>
+                    </div>
+                </form>
+                <div class="text-center mt-3">
+                    <p class="mb-2" style="color: #777;">Already have a account</p>
+                    <a href="{% url 'remainderapp:login'%}" class="btn btn-outline-secondary fw-bold" 
+                       style="border-radius: 0.5rem; border-color: #a3bfa8; color: #a3bfa8;"> Login</a>
+                </div>
+
+                <!-- Non-field Errors -->
+                {% if form.non_field_errors %}
+                    {% for error in form.non_field_errors %}
+                        <div class="alert alert-danger mt-3">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

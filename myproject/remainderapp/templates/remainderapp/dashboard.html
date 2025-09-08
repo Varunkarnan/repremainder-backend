@@ -1,0 +1,30 @@
+{% extends "remainderapp/base.html" %}
+
+{% block content %}
+<div class="container py-5" style="background: linear-gradient(135deg, #eaf2f8, #f5f7fa); min-height: 100vh;">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm border-0 rounded-5 p-5" style="background-color: #ffffff;">
+                <h3 class="mb-4 text-center fw-bold" style="color: #4b4b4b;">Hi! {{ user.username }}</h3>
+
+                <ul class="list-unstyled">
+                    <li class="mb-3">
+                        <a href="{% url 'remainderapp:add_doctors' %}" 
+                           class="btn btn-lg fw-bold w-100" 
+                           style="background: #a3bfa8; color: #fff; border-radius: 0.5rem; text-align: center; transition: 0.3s;">
+                            Add Doctors
+                        </a>
+                    </li>
+                    <li class="mb-3">
+                        <a href="http://127.0.0.1:3000/" 
+                           class="btn btn-outline-secondary btn-lg fw-bold w-100" 
+                           style="border-radius: 0.5rem; color: #6c6c6c; border-color: #b0b0b0; text-align: center;">
+                            Doctors List
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
