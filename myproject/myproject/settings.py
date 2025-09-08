@@ -15,8 +15,12 @@ SECRET_KEY = os.environ.get("SECRET_KEY")  # ✅ Changed from hardcoded to env v
 DEBUG = False  # ✅ Changed to False for production
 
 # ✅ Use Render's external hostname
-ALLOWED_HOSTS = [os.environ.get("RENDER_EXTERNAL_HOSTNAME", "localhost")]
-
+ALLOWED_HOSTS = [
+    os.environ.get("RENDER_EXTERNAL_HOSTNAME", "localhost"),
+    "localhost",
+    "127.0.0.1",
+    "repremainder-backend-1.onrender.com",  # your Render backend domain
+]
 # Application definition
 
 INSTALLED_APPS = [
