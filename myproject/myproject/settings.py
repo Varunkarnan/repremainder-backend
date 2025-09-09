@@ -19,7 +19,7 @@ ALLOWED_HOSTS = [
     os.environ.get("RENDER_EXTERNAL_HOSTNAME", "localhost"),
     "localhost",
     "127.0.0.1",
-    "repremainder-backend-1.onrender.com",  # your Render backend domain
+    "repremainder-backend.onrender.com",  # your Render backend domain
 ]
 # Application definition
 
@@ -99,7 +99,7 @@ DATABASES = {
         'USER': os.environ.get("DB_USER"),
         'PASSWORD': os.environ.get("DB_PASSWORD"),
         'HOST': os.environ.get("DB_HOST"),
-        'PORT': '3306',
+        'PORT': os.environ.get('DB_PORT', '3306'),
     }
 }
 
