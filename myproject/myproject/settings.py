@@ -1,22 +1,30 @@
+"""
+Django settings for myproject project.
+"""
+
 from pathlib import Path
-import os
-from dotenv import load_dotenv  # Added for local development
+import os  # ✅ Added for environment variables
+from dotenv import load_dotenv
 
-load_dotenv()  # Load .env file for local development
 
+load_dotenv() 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get("SECRET_KEY")
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get("SECRET_KEY")  # ✅ Changed from hardcoded to env variable
 
-DEBUG = False
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False  # ✅ Changed to False for production
 
+# ✅ Use Render's external hostname
 ALLOWED_HOSTS = [
     os.environ.get("RENDER_EXTERNAL_HOSTNAME", "localhost"),
     "localhost",
     "127.0.0.1",
-    "optimistic-grace.up.railway.app",
+    "optimistic-grace.up.railway.app",  # your Render backend domain
 ]
+# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -25,13 +33,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'myproject.remainderapp',  # Changed to dotted path
+    'remainderapp',
     'rest_framework',
     'corsheaders',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # ✅ Keep CORS at top
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -40,25 +48,28 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+
 ]
 
 LOGIN_URL = "/login/"
 
+# ✅ CORS settings
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    os.environ.get("FRONTEND_URL", "https://repremainder-frontend.onrender.com"),
-    "http://localhost:3000",
+    os.environ.get("FRONTEND_URL","https://repremainder-frontend.onrender.com"),
+    "http://localhost:3000",  # ✅ Use environment variable for frontend URL
 ]
 
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = True
+
+SESSION_COOKIE_SECURE = True  # ✅ Enable secure cookies for production
 SECURE_SSL_REDIRECT = os.environ.get("DJANGO_SECURE_SSL", "True") == "True"
 CSRF_COOKIE_SECURE = True
 
-SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_SECONDS = 31536000  # ✅ 1 year HSTS
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
@@ -86,6 +97,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'myproject.wsgi.application'
 
+# ✅ Database: InfinityFree MySQL via environment variables
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -93,10 +107,10 @@ DATABASES = {
         'USER': os.environ.get("DB_USER"),
         'PASSWORD': os.environ.get("DB_PASSWORD"),
         'HOST': os.environ.get("DB_HOST"),
-        'PORT': os.environ.get('DB_PORT'),
+        'PORT': os.environ.get("DB_PORT", "3306"),
     }
 }
-
+# Password validation
 SESSION_COOKIE_AGE = 3600
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
@@ -113,9 +127,15 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# ✅ Static files for production
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # ✅ New static root
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  # ✅ Whitenoise for serving static files
+
+# ✅ Remove STATICFILES_DIRS in production (React will handle frontend)
+# STATICFILES_DIRS = [
+#     "remainderapp/static/remainderapp"
+# ]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -131,6 +151,7 @@ LOGGING = {
     'root': {'handlers': ['console'], 'level': 'WARNING'},
 }
 
+# ✅ Email backend remains same, you can use environment variables too
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
