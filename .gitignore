@@ -1,18 +1,4 @@
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.sqlite3
-
-# Virtual environment
-venv/
 .env
 
-# Django
-/staticfiles/
-media/
-
-# VSCode / PyCharm
-.vscode/
-.idea/
+venv/
+.venv/
