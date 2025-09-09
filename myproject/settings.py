@@ -19,7 +19,7 @@ ALLOWED_HOSTS = [
     os.environ.get("RENDER_EXTERNAL_HOSTNAME", "localhost"),
     "localhost",
     "127.0.0.1",
-    "repremainder-backend.onrender.com",  # your Render backend domain
+    "optimistic-grace.up.railway.app",  # your Render backend domain
 ]
 # Application definition
 
@@ -44,6 +44,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
 ]
 
 LOGIN_URL = "/login/"
@@ -51,7 +53,8 @@ LOGIN_URL = "/login/"
 # ✅ CORS settings
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    os.environ.get("FRONTEND_URL"),  # ✅ Use environment variable for frontend URL
+    os.environ.get("FRONTEND_URL","https://repremainder-frontend.onrender.com"),
+    "http://localhost:3000",  # ✅ Use environment variable for frontend URL
 ]
 
 SESSION_COOKIE_SAMESITE = "Lax"
@@ -60,7 +63,7 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 
 SESSION_COOKIE_SECURE = True  # ✅ Enable secure cookies for production
-SECURE_SSL_REDIRECT = True    # ✅ Redirect HTTP → HTTPS
+SECURE_SSL_REDIRECT = os.environ.get("DJANGO_SECURE_SSL", "True") == "True"
 CSRF_COOKIE_SECURE = True
 
 SECURE_HSTS_SECONDS = 31536000  # ✅ 1 year HSTS
@@ -149,6 +152,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = os.environ.get("EMAIL_USER", "kvarun162006@gmail.com")  # ✅ Optional to use env
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_PASSWORD", "xoqbsrrffnxkglda")  # ✅ Optional to use env
+EMAIL_HOST_USER = os.environ.get("EMAIL_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
