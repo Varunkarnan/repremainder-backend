@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Environment
+.env
+*.env
+
+# Virtual environment
+venv/
+env/
+.venv/
+.env/
+
+# Django specific
+db.sqlite3
+*.log
+staticfiles/
+media/
+*.pot
+*.pyc
+*.pyo
+*.pyd
+
+# VSCode
+.vscode/
+
+# MacOS
+.DS_Store
+
+# PyCharm
+.idea/
+
+# Migrations (optional, include if you're not tracking them)
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# Coverage
+htmlcov/
+.coverage
+coverage.xml
+.pytest_cache/
+nosetests.xml
+test-results/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Render deploy files (optional)
+render.yaml

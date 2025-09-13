@@ -1,0 +1,49 @@
+{% extends "remainderapp/base.html" %}
+
+{% block content %}
+<div class="container py-5 add-doctors-bg">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <h3 class="mb-4 fw-bold text-center add-doctors-title">
+                Add Doctors (CSV / Excel)
+            </h3>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="card add-doctors-card shadow-sm">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.file.label_tag }}
+                        {{ form.file }}
+                        {% for err in form.file.errors %}
+                            <div class="text-danger small">{{ err }}</div>
+                        {% endfor %}
+                        <div class="form-text add-doctors-hint">
+                            File must include at least columns:
+                            <strong>Name</strong>, <strong>LastMet</strong>
+                            (and optional <strong>Location</strong>).
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-add fw-bold">
+                            Upload File
+                        </button>
+                        <a href="http://127.0.0.1:3000/" class="btn btn-back fw-bold">
+                            Back to Doctors
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

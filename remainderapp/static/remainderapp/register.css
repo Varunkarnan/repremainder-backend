@@ -1,0 +1,172 @@
+
+body {
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  background: linear-gradient(135deg, #e6f2ff, #f9fbff);
+  color: #333;
+  min-height: 100vh;
+}
+
+/* 🟦 Navbar */
+.navbar {
+  background: linear-gradient(90deg, #007bff, #00c6ff) !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+.navbar .navbar-brand {
+  font-weight: 600;
+  color: #fff !important;
+}
+.navbar .nav-link {
+  color: #f0f8ff !important;
+  transition: color 0.2s;
+}
+.navbar .nav-link:hover {
+  color: #ffeb3b !important;
+}
+
+/* 📦 Card Style */
+.card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  background: #ffffff;
+  transition: transform 0.2s ease-in-out;
+}
+.card:hover {
+  transform: translateY(-4px);
+}
+
+/* 🔘 Buttons */
+.btn-primary {
+  background: linear-gradient(90deg, #007bff, #00c6ff);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-weight: 500;
+  transition: 0.3s;
+}
+.btn-primary:hover {
+  background: linear-gradient(90deg, #0056b3, #0099cc);
+  transform: scale(1.03);
+}
+
+/* ✏️ Forms */
+.form-control {
+  border-radius: 8px;
+  border: 1px solid #cce0ff;
+  box-shadow: none;
+}
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 6px rgba(0,123,255,0.3);
+}
+
+/* 📌 Page Containers */
+.container {
+  max-width: 1000px;
+}
+
+/* 📑 Footer */
+footer {
+  background: #0000ff;
+  border-top: 1px solid #e0e6f0;
+  color: #3e3e3e;
+  font-size: 0.9rem;
+}
+
+/* Better looking input fields */
+.custom-input {
+  border-radius: 0.6rem;
+  border: 1px solid #cbd5e1;
+  padding: 12px 14px;
+  font-size: 15px;
+  background: #ffffffcc;
+  transition: all 0.3s ease;
+}
+
+.custom-input:focus {
+  border-color: #3399ff;
+  box-shadow: 0 0 8px rgba(59,130,246,0.3);
+  outline: none;
+}
+
+/* Labels */
+label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #1a3c66;
+  display: block;
+}
+
+
+/* Background for all auth pages */
+
+
+/* Common card */
+.auth-card {
+  background-color: #ffffff;
+  border: 0;
+  border-radius: 1rem;
+  padding: 2.5rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* Primary button */
+.btn-primary-custom {
+  background: linear-gradient(90deg, #007bff, #00c6ff);
+  color: #fff;
+  border-radius: 0.5rem;
+  transition: 0.3s;
+}
+
+/* Outline button */
+.btn-outline-custom {
+  background: linear-gradient(90deg, #007bff, #00c6ff);
+  color: #fff;
+  border-radius: 0.5rem;
+  transition: 0.3s;
+  
+}
+
+/* === Add Doctors Page === */
+.add-doctors-bg {
+  background: linear-gradient(135deg, #eaf2f8, #f5f7fa);
+  min-height: 100vh;
+}
+
+.add-doctors-title {
+  color: #4b4b4b;
+}
+
+.add-doctors-card {
+  background-color: #ffffff;
+  border: 0;
+  border-radius: 1rem;
+  padding: 2rem;
+}
+
+.add-doctors-hint {
+  color: #6c6c6c;
+}
+
+/* Upload Button */
+.btn-add {
+  background: linear-gradient(90deg, #007bff, #00c6ff);
+  color: #fff;
+  border-radius: 0.5rem;
+  transition: 0.3s;
+}
+.btn-add:hover {
+  background: #8aa78f;
+}
+
+/* Back Button */
+.btn-back {
+  border-radius: 0.5rem;
+  border: 2px solid #b0b0b0;
+  color: #6c6c6c;
+  background: transparent;
+  transition: 0.3s;
+}
+.btn-back:hover {
+  background: #f0f0f0;
+}
