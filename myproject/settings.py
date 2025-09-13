@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ==============================
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 DEBUG = False
-ALLOWED_HOSTS = ['repremainder-backend-production.up.railway.app','https://repremainder-frontend.onrender.com/']
+ALLOWED_HOSTS = ['repremainder-backend-production.up.railway.app']
 
 # ==============================
 # APPLICATIONS
@@ -50,6 +50,12 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://repremainder-frontend.onrender.com",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://repremainder-backend-production.up.railway.app",
+    "https://repremainder-frontend.onrender.com",
 ]
 
 # ==============================
