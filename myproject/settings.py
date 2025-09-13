@@ -1,9 +1,12 @@
 """
-Django settings for myproject project (LOCALHOST VERSION).
+Django settings for myproject (Production Version)
 """
+from dotenv import load_dotenv
 import os
 from pathlib import Path
 
+
+load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ==============================
@@ -11,7 +14,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ==============================
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 DEBUG = False
-ALLOWED_HOSTS = ['repremainder-backend-production.up.railway.app']
+ALLOWED_HOSTS = [
+    'repremainder-backend-production.up.railway.app',
+]
 
 # ==============================
 # APPLICATIONS
@@ -23,16 +28,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'remainderapp',
     'rest_framework',
     'corsheaders',
     'widget_tweaks',
 ]
 
+# ==============================
+# MIDDLEWARE
+# ==============================
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -44,7 +53,7 @@ MIDDLEWARE = [
 LOGIN_URL = "/login/"
 
 # ==============================
-# CORS
+# CORS & CSRF
 # ==============================
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
@@ -59,21 +68,18 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # ==============================
-# DATABASE (SQLite for local dev)
+# DATABASE (MySQL on Railway)
 # ==============================
-import os
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ["MYSQLDATABASE"],   # must exist in Railway
-        'USER': os.environ["MYSQLUSER"],       # must exist in Railway
-        'PASSWORD': os.environ["MYSQLPASSWORD"], 
-        'HOST': os.environ["MYSQLHOST"],       # Railway host (internal or external)
-        'PORT': os.environ["MYSQLPORT"],       # Railway port (not always 3306)
+        'NAME': os.environ["MYSQLDATABASE"],
+        'USER': os.environ["MYSQLUSER"],
+        'PASSWORD': os.environ["MYSQLPASSWORD"],
+        'HOST': os.environ["MYSQLHOST"],
+        'PORT': os.environ["MYSQLPORT"],
     }
 }
-
 
 # ==============================
 # TEMPLATES
@@ -83,7 +89,7 @@ ROOT_URLCONF = 'myproject.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [],  # Add custom templates if needed
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -100,17 +106,6 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 # ==============================
 # PASSWORDS
 # ==============================
-
-CSRF_COOKIE_SECURE = False
-SESSION_COOKIE_SECURE = False
-SECURE_SSL_REDIRECT = False
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-
-SESSION_COOKIE_AGE = 3600
-SESSION_SAVE_EVERY_REQUEST = True
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 8}},
@@ -130,16 +125,33 @@ USE_TZ = True
 # STATIC FILES
 # ==============================
 STATIC_URL = '/static/'
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Collect static files here
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ==============================
-# EMAIL (Gmail Example - can change if needed)
+# SESSION & CSRF COOKIES
+# ==============================
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+SESSION_COOKIE_AGE = 3600
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# ==============================
+# EMAIL (example with Gmail)
 # ==============================
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = os.environ["EMAIL_HOST_USER"]   # put your gmail here
-EMAIL_HOST_PASSWORD = os.environ["EMAIL_HOST_PASSWORD"]  # use app password, not normal gmail password
+EMAIL_HOST_USER = os.environ["EMAIL_HOST_USER"]
+EMAIL_HOST_PASSWORD = os.environ["EMAIL_HOST_PASSWORD"]
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# ==============================
+# OTHER
+# ==============================
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
