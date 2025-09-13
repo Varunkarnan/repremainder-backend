@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 # ==============================
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 # ==============================
@@ -93,6 +93,12 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 # ==============================
 # PASSWORDS
 # ==============================
+
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+
+
 SESSION_COOKIE_AGE = 3600
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
