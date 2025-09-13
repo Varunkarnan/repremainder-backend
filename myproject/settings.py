@@ -10,8 +10,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 # ==============================
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
-DEBUG = True
-ALLOWED_HOSTS = ["*"]
+DEBUG = False
+ALLOWED_HOSTS = ['repremainder-backend-production.up.railway.app','https://repremainder-frontend.onrender.com/']
 
 # ==============================
 # APPLICATIONS
@@ -94,9 +94,10 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 # PASSWORDS
 # ==============================
 
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = True
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+SECURE_SSL_REDIRECT = False
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 SESSION_COOKIE_AGE = 3600
