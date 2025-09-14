@@ -38,8 +38,8 @@ from django.views.decorators.cache import never_cache
 
 # Create your views here.
 
-bold_path = r"D:\Remainder\remainder_react\fonts\LibertinusSerif-Bold.ttf"
-regular_path = r"D:\Remainder\remainder_react\fonts\LibertinusSerif-Regular.ttf"
+bold_path = os.path.join(settings.BASE_DIR, "remainderapp", "static", "fonts", "LibertinusSerif-Bold.ttf")
+regular_path = os.path.join(settings.BASE_DIR, "remainderapp", "static", "fonts", "LibertinusSerif-Regular.ttf")
 
 
 def contact(request):
