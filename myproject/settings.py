@@ -16,7 +16,7 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 DEBUG = False
 ALLOWED_HOSTS = [
     'repremainder-backend-production.up.railway.app',
-    
+    "repremainder-frontend.onrender.com"
 ]
 
 # ==============================
@@ -64,8 +64,7 @@ CORS_ALLOWED_ORIGINS = [
 
 # Read env only if set, and strip any trailing slash
 if os.environ.get("DJANGO_CORS_ORIGINS"):
-    origin = os.environ["DJANGO_CORS_ORIGINS"].rstrip('/')
-    CORS_ALLOWED_ORIGINS.append(origin)
+    CORS_ALLOWED_ORIGINS += os.environ["DJANGO_CORS_ORIGINS"].split(",")
 
 
 
