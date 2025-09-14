@@ -60,8 +60,13 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    os.environ.get("DJANGO_CORS_ORIGINS", "https://repremainder-frontend.onrender.com")
 ]
+
+# Read env only if set, and strip any trailing slash
+if os.environ.get("DJANGO_CORS_ORIGINS"):
+    origin = os.environ["DJANGO_CORS_ORIGINS"].rstrip('/')
+    CORS_ALLOWED_ORIGINS.append(origin)
+
 
 
 CSRF_TRUSTED_ORIGINS = [
@@ -75,11 +80,11 @@ CSRF_TRUSTED_ORIGINS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get("MYSQLDATABASE", "railway"),
-        'USER': os.environ.get("MYSQLUSER", "root"),
-        'PASSWORD': os.environ.get("MYSQLPASSWORD", ""),
-        'HOST': os.environ.get("MYSQLHOST", "mysql.railway.internal"),
-        'PORT': os.environ.get("MYSQLPORT", "3306"),
+        'NAME': os.environ.get("MYSQLDATABASE"),
+        'USER': os.environ.get("MYSQLUSER"),
+        'PASSWORD': os.environ.get("MYSQLPASSWORD"),
+        'HOST': os.environ.get("MYSQLHOST"),
+        'PORT': os.environ.get("MYSQLPORT"),
     }
 }
 
@@ -129,6 +134,9 @@ USE_TZ = True
 # ==============================
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # Collect static files here
+STATICFILES_DIRS = [
+    BASE_DIR / 'remainderapp' / 'static',  # if your static files are inside the app folder
+]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ==============================
