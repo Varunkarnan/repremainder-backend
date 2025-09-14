@@ -16,6 +16,7 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 DEBUG = False
 ALLOWED_HOSTS = [
     'repremainder-backend-production.up.railway.app',
+    
 ]
 
 # ==============================
@@ -59,8 +60,9 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://repremainder-frontend.onrender.com",
+    os.environ.get("DJANGO_CORS_ORIGINS", "https://repremainder-frontend.onrender.com")
 ]
+
 
 CSRF_TRUSTED_ORIGINS = [
     "https://repremainder-backend-production.up.railway.app",
@@ -73,13 +75,14 @@ CSRF_TRUSTED_ORIGINS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ["MYSQLDATABASE"],
-        'USER': os.environ["MYSQLUSER"],
-        'PASSWORD': os.environ["MYSQLPASSWORD"],
-        'HOST': os.environ["MYSQLHOST"],
-        'PORT': os.environ["MYSQLPORT"],
+        'NAME': os.environ.get("MYSQLDATABASE", "railway"),
+        'USER': os.environ.get("MYSQLUSER", "root"),
+        'PASSWORD': os.environ.get("MYSQLPASSWORD", ""),
+        'HOST': os.environ.get("MYSQLHOST", "mysql.railway.internal"),
+        'PORT': os.environ.get("MYSQLPORT", "3306"),
     }
 }
+
 
 # ==============================
 # TEMPLATES
