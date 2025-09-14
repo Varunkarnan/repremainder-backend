@@ -133,9 +133,7 @@ USE_TZ = True
 # ==============================
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # Collect static files here
-STATICFILES_DIRS = [
-    BASE_DIR / 'remainderapp' / 'static',  # if your static files are inside the app folder
-]
+
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ==============================

@@ -174,28 +174,38 @@ def doctor_list_api(request):
                 "id": doc.id,
                 "name": doc.name,
                 "location": doc.location,
-                # ✅ Always format as DD-MM-YYYY
                 "lastMet": doc.lastMet.strftime("%d-%m-%Y") if doc.lastMet else None
             })
         return JsonResponse(data, safe=False)
 
     elif request.method == "POST":
-        data = json.loads(request.body)
-        last_met = data.get("lastMet")
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-        # ✅ Convert from DD-MM-YYYY to Python date
+        name = data.get("name")
+        last_met = data.get("lastMet")
+        location = data.get("location", "")
+
+        if not name:
+            return JsonResponse({"error": "Name is required"}, status=400)
+
+        # Convert lastMet safely
+        date_obj = None
         if last_met:
             try:
-                last_met = datetime.strptime(last_met, "%d-%m-%Y").date()
+                date_obj = datetime.strptime(last_met, "%d-%m-%Y").date()
             except ValueError:
-                return JsonResponse({"error": "Invalid date format. Use DD-MM-YYYY"}, status=400)
+                return JsonResponse({"error": "Invalid date format. Use DD-MM-YYYY."}, status=400)
 
         doc = Doctor.objects.create(
             user=request.user,
-            name=data.get("name"),
-            lastMet=last_met,
-            location=data.get("location", "")
+            name=name,
+            lastMet=date_obj,
+            location=location
         )
+
         return JsonResponse({
             "id": doc.id,
             "name": doc.name,
@@ -251,48 +261,47 @@ def doctor_delete_api(request, id):
 @login_required
 @never_cache
 def doctor_update_api(request, id):
-    if request.method == "PUT":
+    if request.method != "PUT":
+        return JsonResponse({"error": "Invalid method"}, status=400)
+
+    try:
+        doctor = Doctor.objects.get(id=id, user=request.user)
+    except Doctor.DoesNotExist:
+        return JsonResponse({"error": "Doctor not found"}, status=404)
+
+    try:
         data = json.loads(request.body)
-        try:
-            doctor = Doctor.objects.get(id=id, user=request.user)
-            new_date = data.get("lastMet")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-            # 🚫 Block empty or invalid dates
-            if not new_date or new_date.strip() == "":
-                return JsonResponse({"error": "Date cannot be empty"}, status=400)
+    last_met = data.get("lastMet")
+    if not last_met or last_met.strip() == "":
+        return JsonResponse({"error": "lastMet cannot be empty"}, status=400)
 
-            # ✅ Convert string into Python date object
-            if isinstance(new_date, str):
-                try:
-                    new_date = datetime.strptime(new_date, "%d-%m-%Y").date()
-                except ValueError:
-                    return JsonResponse({"error": "Invalid date format. Use DD-MM-YYYY."}, status=400)
-                
-            if doctor.lastMet and new_date < doctor.lastMet:
-                return JsonResponse({
-                    "error": f"Date must be after last updated date ({doctor.lastMet.strftime('%d-%m-%Y')})"
-                }, status=400)
-            
+    try:
+        new_date = datetime.strptime(last_met, "%d-%m-%Y").date()
+    except ValueError:
+        return JsonResponse({"error": "Invalid date format. Use DD-MM-YYYY."}, status=400)
 
-            # ✅ Update lastMet
-            doctor.lastMet = new_date
-            doctor.save()
+    # Optional: prevent decreasing the date
+    if doctor.lastMet and new_date < doctor.lastMet:
+        return JsonResponse({
+            "error": f"Date must be after last updated date ({doctor.lastMet.strftime('%d-%m-%Y')})"
+        }, status=400)
 
-            # ✅ Create meeting record if not duplicate
-            if not doctor.meetings.filter(meeting_date=new_date).exists():
-                MeetingHistory.objects.create(
-                    doctor=doctor,
-                    meeting_date=new_date
-                )
+    doctor.lastMet = new_date
+    doctor.save()
 
-            return JsonResponse({
-                "success": True,
-                "id": doctor.id,
-                "lastMet": doctor.lastMet.strftime("%d-%m-%Y")
-            })
-        except Doctor.DoesNotExist:
-            return JsonResponse({"error": "Doctor not found"}, status=404)
-    return JsonResponse({"error": "Invalid method"}, status=400)
+    # Avoid duplicate MeetingHistory
+    if not doctor.meetings.filter(meeting_date=new_date).exists():
+        MeetingHistory.objects.create(doctor=doctor, meeting_date=new_date)
+
+    return JsonResponse({
+        "success": True,
+        "id": doctor.id,
+        "lastMet": doctor.lastMet.strftime("%d-%m-%Y")
+    })
+
 
 @never_cache
 def logout(request):
