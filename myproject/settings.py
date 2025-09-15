@@ -60,11 +60,10 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://repremainder-frontend.onrender.com",
 ]
 
-# Read env only if set, and strip any trailing slash
-if os.environ.get("DJANGO_CORS_ORIGINS"):
-    CORS_ALLOWED_ORIGINS += os.environ["DJANGO_CORS_ORIGINS"].split(",")
+
 
 
 
