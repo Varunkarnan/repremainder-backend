@@ -501,48 +501,41 @@ def _generate_doctors_pdf(request, year=None, month=None):
     return response
 
 
-
+@login_required
+@never_cache
 def send_doctors_pdf_to_users(request):
     try:
-        # Determine user
-        user = request.user if request.user.is_authenticated else None
-        doctors = Doctor.objects.filter(user=user) if user else Doctor.objects.none()
-        recipient_email = user.email if user and user.email else "kvarun162006@gmail.com"
+        doctors = Doctor.objects.filter(user=request.user)
+        recipient_email = request.user.email
 
-        # Create PDF in memory
+        if not doctors.exists():
+            return JsonResponse({"success": False, "message": "No doctors to send."}, status=400)
+
+        # Create PDF
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         elements = []
-
-        # Styles
         styles = getSampleStyleSheet()
         styles.add(ParagraphStyle(name='TitlePremium', fontSize=20, alignment=TA_CENTER, textColor=colors.HexColor('#2c3e50')))
         styles.add(ParagraphStyle(name='SubInfo', fontSize=12, alignment=TA_CENTER, textColor=colors.HexColor('#7f8c8d')))
 
-        # Title + timestamp
         elements.append(Paragraph("Doctors List", styles['TitlePremium']))
         elements.append(Spacer(1, 12))
-        now_str = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-        elements.append(Paragraph(f"Generated on: {now_str}", styles['SubInfo']))
+        elements.append(Paragraph(f"Generated on: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", styles['SubInfo']))
         elements.append(Spacer(1, 20))
 
-        # Table headers
         data = [["S.No", "Doctor Name", "Location", "Last Met", "Days Passed"]]
         today = datetime.today().date()
 
-        # Table rows
         for idx, doc_item in enumerate(doctors, start=1):
-            days_passed = (today - doc_item.lastMet).days
-            lastmet_str = doc_item.lastMet.strftime("%d-%m-%Y")
-            data.append([
-                str(idx),
-                f"Dr. {doc_item.name}",
-                doc_item.location,
-                lastmet_str,
-                str(days_passed)
-            ])
+            if doc_item.lastMet:
+                days_passed = (today - doc_item.lastMet).days
+                lastmet_str = doc_item.lastMet.strftime("%d-%m-%Y")
+            else:
+                days_passed = "-"
+                lastmet_str = "-"
+            data.append([str(idx), f"Dr. {doc_item.name}", doc_item.location, lastmet_str, str(days_passed)])
 
-        # Table formatting
         table = Table(data, colWidths=[50, 150, 120, 100, 100])
         table_style = TableStyle([
             ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#eaf2f8')),
@@ -552,21 +545,16 @@ def send_doctors_pdf_to_users(request):
             ('BOTTOMPADDING', (0,0), (-1,0), 12),
             ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#d1d5db')),
         ])
-
-        # Highlight overdue doctors
         for i, doc_item in enumerate(doctors, start=1):
-            if (today - doc_item.lastMet).days > 10:
+            if doc_item.lastMet and (today - doc_item.lastMet).days > 10:
                 table_style.add('BACKGROUND', (0,i), (-1,i), colors.HexColor('#f8d7da'))
-
         table.setStyle(table_style)
         elements.append(table)
-
-        # Build PDF
         doc.build(elements)
         pdf = buffer.getvalue()
         buffer.close()
 
-        # Send email
+        # Send Email
         email = EmailMessage(
             subject="Doctors List - Missed Calls Highlighted",
             body="Here is the list attached with missed calls for more than 10 days.",
@@ -574,15 +562,10 @@ def send_doctors_pdf_to_users(request):
             to=[recipient_email],
         )
         email.attach("Doctors_List.pdf", pdf, "application/pdf")
-
-        try:
-            email.send(fail_silently=False)
-        except Exception as e:
-            print("Email sending failed:", e)
-            return JsonResponse({"success": False, "message": f"Email sending failed: {e}"}, status=500)
+        email.send(fail_silently=False)
 
         return JsonResponse({"success": True, "message": f"Email sent successfully to {recipient_email}!"})
 
     except Exception as e:
-        print("Error generating PDF:", e)
-        return JsonResponse({"success": False, "message": f"Error generating PDF: {e}"}, status=500)
+        print("Error:", e)
+        return JsonResponse({"success": False, "message": str(e)}, status=500)
