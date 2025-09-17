@@ -1,6 +1,10 @@
+"""
+Django settings for myproject (Production Version)
+"""
 from dotenv import load_dotenv
 import os
 from pathlib import Path
+
 
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -12,7 +16,7 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 DEBUG = False
 ALLOWED_HOSTS = [
     'repremainder-backend-production.up.railway.app',
-    'repremainder-frontend.onrender.com',
+    "repremainder-frontend.onrender.com"
 ]
 
 # ==============================
@@ -35,9 +39,9 @@ INSTALLED_APPS = [
 # MIDDLEWARE
 # ==============================
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # Must be first
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -56,14 +60,14 @@ CORS_ALLOWED_ORIGINS = [
     "https://repremainder-frontend.onrender.com",
 ]
 
+
+
+
+
 CSRF_TRUSTED_ORIGINS = [
     "https://repremainder-backend-production.up.railway.app",
     "https://repremainder-frontend.onrender.com",
 ]
-
-# Ensure CSRF cookie is sent with cross-origin requests
-SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'Lax'
 
 # ==============================
 # DATABASE (MySQL on Railway)
@@ -79,6 +83,7 @@ DATABASES = {
     }
 }
 
+
 # ==============================
 # TEMPLATES
 # ==============================
@@ -87,7 +92,7 @@ ROOT_URLCONF = 'myproject.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [],  # Add custom templates if needed
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -123,7 +128,7 @@ USE_TZ = True
 # STATIC FILES
 # ==============================
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Collect static files here
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 

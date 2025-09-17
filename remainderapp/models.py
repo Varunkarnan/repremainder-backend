@@ -1,10 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+# Create your models here.
+
 class Doctor(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    lastMet = models.DateField(null=True, blank=True)
+    lastMet =models.DateField(null=True, blank=True)
     location = models.CharField(max_length=255)
 
     def __str__(self):
@@ -17,3 +19,5 @@ class MeetingHistory(models.Model):
 
     def __str__(self):
         return f"{self.doctor.name} - {self.meeting_date}"
+
+
