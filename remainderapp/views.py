@@ -509,7 +509,7 @@ def send_doctors_pdf_to_users(request):
     try:
         # Get logged-in user
         user = request.user
-        recipient_email = "21ecb50@karpagamtech.ac.in"  # send TO the user's email
+        recipient_email = user.email  # send TO the user's email
 
         if not recipient_email:
             return JsonResponse({"success": False, "message": "User has no email set."}, status=400)
