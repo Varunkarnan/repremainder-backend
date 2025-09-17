@@ -501,29 +501,39 @@ def _generate_doctors_pdf(request, year=None, month=None):
     return response
 
 
+
 @login_required
 @never_cache
 def send_doctors_pdf_to_users(request):
     try:
-        doctors = Doctor.objects.filter(user=request.user)
-        recipient_email = request.user.email
+        # Get logged-in user
+        user = request.user
+        recipient_email = user.email  # send TO the user's email
 
+        if not recipient_email:
+            return JsonResponse({"success": False, "message": "User has no email set."}, status=400)
+
+        doctors = Doctor.objects.filter(user=user)
         if not doctors.exists():
             return JsonResponse({"success": False, "message": "No doctors to send."}, status=400)
 
-        # Create PDF
+        # Create PDF in memory
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         elements = []
+
         styles = getSampleStyleSheet()
         styles.add(ParagraphStyle(name='TitlePremium', fontSize=20, alignment=TA_CENTER, textColor=colors.HexColor('#2c3e50')))
         styles.add(ParagraphStyle(name='SubInfo', fontSize=12, alignment=TA_CENTER, textColor=colors.HexColor('#7f8c8d')))
 
+        # Title + timestamp
         elements.append(Paragraph("Doctors List", styles['TitlePremium']))
         elements.append(Spacer(1, 12))
-        elements.append(Paragraph(f"Generated on: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", styles['SubInfo']))
+        now_str = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+        elements.append(Paragraph(f"Generated on: {now_str}", styles['SubInfo']))
         elements.append(Spacer(1, 20))
 
+        # Table headers
         data = [["S.No", "Doctor Name", "Location", "Last Met", "Days Passed"]]
         today = datetime.today().date()
 
@@ -550,16 +560,18 @@ def send_doctors_pdf_to_users(request):
                 table_style.add('BACKGROUND', (0,i), (-1,i), colors.HexColor('#f8d7da'))
         table.setStyle(table_style)
         elements.append(table)
+
+        # Build PDF
         doc.build(elements)
         pdf = buffer.getvalue()
         buffer.close()
 
-        # Send Email
+        # Send email
         email = EmailMessage(
             subject="Doctors List - Missed Calls Highlighted",
             body="Here is the list attached with missed calls for more than 10 days.",
-            from_email=settings.EMAIL_HOST_USER,
-            to=[recipient_email],
+            from_email="kvarun162006@gmail.com",  # Sender
+            to=[recipient_email],                  # Recipient
         )
         email.attach("Doctors_List.pdf", pdf, "application/pdf")
         email.send(fail_silently=False)
