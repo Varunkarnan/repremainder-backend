@@ -33,6 +33,10 @@ from django.urls import reverse
 import calendar
 import random
 from django.views.decorators.cache import never_cache
+import traceback
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
+import base64
 
 
 
@@ -533,17 +537,14 @@ def send_doctors_pdf_to_users(request):
             name='SubInfo', fontSize=12, alignment=TA_CENTER, textColor=colors.HexColor('#7f8c8d')
         ))
 
-        # Title and timestamp
         elements.append(Paragraph("Doctors List", styles['TitlePremium']))
         elements.append(Spacer(1, 12))
         now_str = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
         elements.append(Paragraph(f"Generated on: {now_str}", styles['SubInfo']))
         elements.append(Spacer(1, 20))
 
-        # Table headers
         data = [["S.No", "Doctor Name", "Location", "Last Met", "Days Passed"]]
         today = date.today()
-
         for idx, doc_item in enumerate(doctors, start=1):
             lastmet_str = "-"
             days_passed = "-"
@@ -556,7 +557,6 @@ def send_doctors_pdf_to_users(request):
 
             data.append([str(idx), f"Dr. {doc_item.name}", doc_item.location, lastmet_str, str(days_passed)])
 
-        # Table styling
         table = Table(data, colWidths=[50, 150, 120, 100, 100])
         table_style = TableStyle([
             ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#eaf2f8')),
@@ -567,7 +567,6 @@ def send_doctors_pdf_to_users(request):
             ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#d1d5db')),
         ])
 
-        # Highlight doctors not met in 10+ days
         for i, doc_item in enumerate(doctors, start=1):
             if doc_item.lastMet:
                 last_met_date = doc_item.lastMet
@@ -579,23 +578,35 @@ def send_doctors_pdf_to_users(request):
         table.setStyle(table_style)
         elements.append(table)
 
-        # Build PDF
         doc.build(elements)
         pdf = buffer.getvalue()
         buffer.close()
 
-        # --- Send email ---
-        email = EmailMessage(
-            subject="Doctors List - Missed Calls Highlighted",
-            body="Here is the list attached with missed calls for more than 10 days.",
-            from_email="kvarun162006@gmail.com",
-            to=[recipient_email],
+        # --- Send email via SendGrid API ---
+        encoded_file = base64.b64encode(pdf).decode()
+        attachment = Attachment(
+            FileContent(encoded_file),
+            FileName("Doctors_List.pdf"),
+            FileType("application/pdf"),
+            Disposition("attachment")
         )
-        email.attach("Doctors_List.pdf", pdf, "application/pdf")
-        email.send(fail_silently=False)
 
-        return JsonResponse({"success": True, "message": f"Email sent successfully to {recipient_email}!"})
+        message = Mail(
+            from_email="kvarun162006@gmail.com",
+            to_emails=recipient_email,
+            subject="Doctors List - Missed Calls Highlighted",
+            html_content="Here is the list attached with missed calls for more than 10 days."
+        )
+        message.attachment = attachment
+
+        sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
+        response = sg.send(message)
+
+        if 200 <= response.status_code < 300:
+            return JsonResponse({"success": True, "message": f"Email sent successfully to {recipient_email}!"})
+        else:
+            return JsonResponse({"success": False, "message": f"SendGrid error: {response.status_code}"}, status=500)
 
     except Exception as e:
-        traceback.print_exc()  # full error printed in server logs
+        traceback.print_exc()
         return JsonResponse({"success": False, "message": f"Error: {str(e)}"}, status=500)
