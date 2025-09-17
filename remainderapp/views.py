@@ -402,6 +402,8 @@ def download_monthly_doctors_pdf(request, year, month):
 
 @login_required
 @never_cache
+@login_required
+@never_cache
 def _generate_doctors_pdf(request, year=None, month=None):
     user = request.user.username
     today_str = datetime.now().strftime("%d %b %Y")
@@ -446,22 +448,34 @@ def _generate_doctors_pdf(request, year=None, month=None):
     elements.append(Paragraph(title, styles['TitlePremium']))
     elements.append(Spacer(1, 20))
 
-    # Fetch doctors (user-based filter ✅)
+    # Fetch doctors for this user
     doctors = Doctor.objects.filter(user=request.user)
     if year and month:
-        doctors = doctors.filter(lastMet__year=year, lastMet__month=month)
-
-    # Table
-    month_name = datetime(int(year), int(month), 1).strftime("%B %Y") if (year and month) else "Meeting Dates"
-    data = [["S.No", "Doctor Name", "Location", month_name]]
-
-    for idx, doc_item in enumerate(doctors, start=1):
-        meetings = doc_item.meetings.filter(
+        # For monthly report, only include doctors with meetings in that month
+        doctors = [doc for doc in doctors if doc.meetings.filter(
             meeting_date__year=year,
             meeting_date__month=month
+        ).exists()]
+
+    # Table header
+    table_header = ["S.No", "Doctor Name", "Location"]
+    table_header.append(f"Meeting Dates ({datetime(int(year), int(month), 1).strftime('%b %Y')})" 
+                        if year and month else "Meeting Dates")
+    data = [table_header]
+
+    # Table rows
+    for idx, doc_item in enumerate(doctors, start=1):
+        # Get meetings for the month or all meetings
+        if year and month:
+            meetings = doc_item.meetings.filter(
+                meeting_date__year=year,
+                meeting_date__month=month
             ).values_list("meeting_date", flat=True)
-        
-        days = sorted([d.strftime("%d") for d in meetings])
+        else:
+            meetings = doc_item.meetings.all().values_list("meeting_date", flat=True)
+
+        # Format dates
+        days = sorted([d.strftime("%d-%m-%Y") for d in meetings])
         data.append([
             str(idx),
             f"Dr. {doc_item.name}",
@@ -469,7 +483,8 @@ def _generate_doctors_pdf(request, year=None, month=None):
             ", ".join(days) if days else "-"
         ])
 
-    table = Table(data, colWidths=[50, 150, 150, 100])
+    # Create table
+    table = Table(data, colWidths=[50, 150, 150, 150])
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#eaf2f8')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
@@ -487,32 +502,34 @@ def _generate_doctors_pdf(request, year=None, month=None):
 
 
 
-
-@login_required
-@never_cache
 def send_doctors_pdf_to_users(request):
     try:
-        doctors = Doctor.objects.filter(user=request.user)
+        # Determine user
+        user = request.user if request.user.is_authenticated else None
+        doctors = Doctor.objects.filter(user=user) if user else Doctor.objects.none()
+        recipient_email = user.email if user and user.email else "kvarun162006@gmail.com"
+
+        # Create PDF in memory
         buffer = BytesIO()
-        
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         elements = []
-        
+
+        # Styles
         styles = getSampleStyleSheet()
         styles.add(ParagraphStyle(name='TitlePremium', fontSize=20, alignment=TA_CENTER, textColor=colors.HexColor('#2c3e50')))
         styles.add(ParagraphStyle(name='SubInfo', fontSize=12, alignment=TA_CENTER, textColor=colors.HexColor('#7f8c8d')))
-        
+
         # Title + timestamp
         elements.append(Paragraph("Doctors List", styles['TitlePremium']))
         elements.append(Spacer(1, 12))
-        now = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-        elements.append(Paragraph(f"Generated on: {now}", styles['SubInfo']))
+        now_str = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+        elements.append(Paragraph(f"Generated on: {now_str}", styles['SubInfo']))
         elements.append(Spacer(1, 20))
-        
-        # Table headers (added Days Passed column)
+
+        # Table headers
         data = [["S.No", "Doctor Name", "Location", "Last Met", "Days Passed"]]
         today = datetime.today().date()
-        
+
         # Table rows
         for idx, doc_item in enumerate(doctors, start=1):
             days_passed = (today - doc_item.lastMet).days
@@ -522,9 +539,9 @@ def send_doctors_pdf_to_users(request):
                 f"Dr. {doc_item.name}",
                 doc_item.location,
                 lastmet_str,
-                str(days_passed)  # ✅ new column
+                str(days_passed)
             ])
-        
+
         # Table formatting
         table = Table(data, colWidths=[50, 150, 120, 100, 100])
         table_style = TableStyle([
@@ -535,29 +552,37 @@ def send_doctors_pdf_to_users(request):
             ('BOTTOMPADDING', (0,0), (-1,0), 12),
             ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#d1d5db')),
         ])
-        
+
         # Highlight overdue doctors
         for i, doc_item in enumerate(doctors, start=1):
             if (today - doc_item.lastMet).days > 10:
                 table_style.add('BACKGROUND', (0,i), (-1,i), colors.HexColor('#f8d7da'))
-        
+
         table.setStyle(table_style)
         elements.append(table)
+
+        # Build PDF
         doc.build(elements)
         pdf = buffer.getvalue()
         buffer.close()
-        
+
         # Send email
         email = EmailMessage(
             subject="Doctors List - Missed Calls Highlighted",
-            body="Here is the list attached with missed calls for more than 10 days",
-            from_email="kvarun162006@gmail.com",
-            to=[request.user.email],
+            body="Here is the list attached with missed calls for more than 10 days.",
+            from_email=settings.EMAIL_HOST_USER,
+            to=[recipient_email],
         )
         email.attach("Doctors_List.pdf", pdf, "application/pdf")
-        email.send()
-        
-        return JsonResponse({"success": True, "message": "Email sent successfully!"})
-    
+
+        try:
+            email.send(fail_silently=False)
+        except Exception as e:
+            print("Email sending failed:", e)
+            return JsonResponse({"success": False, "message": f"Email sending failed: {e}"}, status=500)
+
+        return JsonResponse({"success": True, "message": f"Email sent successfully to {recipient_email}!"})
+
     except Exception as e:
-        return JsonResponse({"success": False, "message": str(e)}, status=500)
+        print("Error generating PDF:", e)
+        return JsonResponse({"success": False, "message": f"Error generating PDF: {e}"}, status=500)
