@@ -571,7 +571,7 @@ def send_doctors_pdf_to_users(request):
             subject="Doctors List - Missed Calls Highlighted",
             body="Here is the list attached with missed calls for more than 10 days.",
             from_email="kvarun162006@gmail.com",  # Sender
-            to=[recipient_email],                  # Recipient
+            to="21ecb50@karpagamtech.ac.in",                  # Recipient
         )
         email.attach("Doctors_List.pdf", pdf, "application/pdf")
         email.send(fail_silently=False)
