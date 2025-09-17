@@ -36,6 +36,7 @@ from django.views.decorators.cache import never_cache
 
 
 
+
 # Create your views here.
 
 bold_path = os.path.join(settings.BASE_DIR, "remainderapp", "static", "fonts", "LibertinusSerif-Bold.ttf")
@@ -502,7 +503,7 @@ def _generate_doctors_pdf(request, year=None, month=None):
 
 
 
-@login_required
+
 @never_cache
 def send_doctors_pdf_to_users(request):
     try:
