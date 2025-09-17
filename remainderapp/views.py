@@ -163,7 +163,7 @@ def dashboard(request):
 
 
 @csrf_exempt
-@login_required
+
 @never_cache
 def doctor_list_api(request):
     if request.method == "GET":
@@ -214,7 +214,7 @@ def doctor_list_api(request):
         })
 
 
-@login_required
+
 @never_cache
 def available_months(request):
     doctors = Doctor.objects.exclude(lastMet__isnull=True)
@@ -238,7 +238,7 @@ def available_months(request):
     return JsonResponse({"months": month_list})
 
 
-@login_required
+
 @never_cache
 def doctor_list(request):
     doctors = Doctor.objects.filter(user=request.user)
