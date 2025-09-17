@@ -154,7 +154,7 @@ EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = "apikey"
-EMAIL_HOST_PASSWORD = os.environ.get("SENDGRID_API_KEY")
+EMAIL_HOST_PASSWORD = os.environ.get("SENDGRID_API_KEY","").strip()
 DEFAULT_FROM_EMAIL = "kvarun162006@gmail.com"
 
 # ==============================

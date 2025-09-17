@@ -600,7 +600,6 @@ def send_doctors_pdf_to_users(request):
         message.attachment = attachment
 
         sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY","").strip())
-        sg = SendGridAPIClient(SENDGRID_API_KEY)
         response = sg.send(message)
 
         if 200 <= response.status_code < 300:
