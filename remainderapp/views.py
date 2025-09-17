@@ -11,7 +11,7 @@ import pandas as pd
 from django.views.decorators.csrf import csrf_exempt
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,date
 import json
 from django.contrib.auth.forms import AuthenticationForm
 from reportlab.pdfgen import canvas 
@@ -503,31 +503,37 @@ def _generate_doctors_pdf(request, year=None, month=None):
 
 
 
-
 @never_cache
 def send_doctors_pdf_to_users(request):
     try:
-        # Get logged-in user
-        user = request.user
-        recipient_email = user.email  # send TO the user's email
+        # --- Check authentication ---
+        if not request.user.is_authenticated:
+            return JsonResponse({"success": False, "message": "User not logged in."}, status=401)
 
+        user = request.user
+        recipient_email = getattr(user, "email", None)
         if not recipient_email:
             return JsonResponse({"success": False, "message": "User has no email set."}, status=400)
 
+        # --- Get doctors ---
         doctors = Doctor.objects.filter(user=user)
         if not doctors.exists():
             return JsonResponse({"success": False, "message": "No doctors to send."}, status=400)
 
-        # Create PDF in memory
+        # --- Create PDF in memory ---
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         elements = []
 
         styles = getSampleStyleSheet()
-        styles.add(ParagraphStyle(name='TitlePremium', fontSize=20, alignment=TA_CENTER, textColor=colors.HexColor('#2c3e50')))
-        styles.add(ParagraphStyle(name='SubInfo', fontSize=12, alignment=TA_CENTER, textColor=colors.HexColor('#7f8c8d')))
+        styles.add(ParagraphStyle(
+            name='TitlePremium', fontSize=20, alignment=TA_CENTER, textColor=colors.HexColor('#2c3e50')
+        ))
+        styles.add(ParagraphStyle(
+            name='SubInfo', fontSize=12, alignment=TA_CENTER, textColor=colors.HexColor('#7f8c8d')
+        ))
 
-        # Title + timestamp
+        # Title and timestamp
         elements.append(Paragraph("Doctors List", styles['TitlePremium']))
         elements.append(Spacer(1, 12))
         now_str = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
@@ -536,17 +542,21 @@ def send_doctors_pdf_to_users(request):
 
         # Table headers
         data = [["S.No", "Doctor Name", "Location", "Last Met", "Days Passed"]]
-        today = datetime.today().date()
+        today = date.today()
 
         for idx, doc_item in enumerate(doctors, start=1):
+            lastmet_str = "-"
+            days_passed = "-"
             if doc_item.lastMet:
-                days_passed = (today - doc_item.lastMet).days
-                lastmet_str = doc_item.lastMet.strftime("%d-%m-%Y")
-            else:
-                days_passed = "-"
-                lastmet_str = "-"
+                last_met_date = doc_item.lastMet
+                if isinstance(last_met_date, datetime):
+                    last_met_date = last_met_date.date()
+                lastmet_str = last_met_date.strftime("%d-%m-%Y")
+                days_passed = (today - last_met_date).days
+
             data.append([str(idx), f"Dr. {doc_item.name}", doc_item.location, lastmet_str, str(days_passed)])
 
+        # Table styling
         table = Table(data, colWidths=[50, 150, 120, 100, 100])
         table_style = TableStyle([
             ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#eaf2f8')),
@@ -556,9 +566,16 @@ def send_doctors_pdf_to_users(request):
             ('BOTTOMPADDING', (0,0), (-1,0), 12),
             ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#d1d5db')),
         ])
+
+        # Highlight doctors not met in 10+ days
         for i, doc_item in enumerate(doctors, start=1):
-            if doc_item.lastMet and (today - doc_item.lastMet).days > 10:
-                table_style.add('BACKGROUND', (0,i), (-1,i), colors.HexColor('#f8d7da'))
+            if doc_item.lastMet:
+                last_met_date = doc_item.lastMet
+                if isinstance(last_met_date, datetime):
+                    last_met_date = last_met_date.date()
+                if (today - last_met_date).days > 10:
+                    table_style.add('BACKGROUND', (0,i), (-1,i), colors.HexColor('#f8d7da'))
+
         table.setStyle(table_style)
         elements.append(table)
 
@@ -567,12 +584,12 @@ def send_doctors_pdf_to_users(request):
         pdf = buffer.getvalue()
         buffer.close()
 
-        # Send email
+        # --- Send email ---
         email = EmailMessage(
             subject="Doctors List - Missed Calls Highlighted",
             body="Here is the list attached with missed calls for more than 10 days.",
-            from_email="kvarun162006@gmail.com",  # Sender
-            to=[recipient_email],                  # Recipient
+            from_email="kvarun162006@gmail.com",
+            to=[recipient_email],
         )
         email.attach("Doctors_List.pdf", pdf, "application/pdf")
         email.send(fail_silently=False)
@@ -580,5 +597,5 @@ def send_doctors_pdf_to_users(request):
         return JsonResponse({"success": True, "message": f"Email sent successfully to {recipient_email}!"})
 
     except Exception as e:
-        print("Error:", e)
-        return JsonResponse({"success": False, "message": str(e)}, status=500)
+        traceback.print_exc()  # full error printed in server logs
+        return JsonResponse({"success": False, "message": f"Error: {str(e)}"}, status=500)
